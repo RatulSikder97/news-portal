@@ -31,7 +31,7 @@ const NewsListPage = () => {
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [limit] = useState(6);
+  const [limit] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +42,7 @@ const NewsListPage = () => {
           userService.getUsers(),
         ]);
 
-        const usersMap = new Map(usersData.map((u) => [Number(u.id), u]));
+        const usersMap = new Map(usersData.map((u) => [u.id, u]));
         setUsers(usersMap);
         setPaginatedNews(newsData);
         setError("");
@@ -88,6 +88,8 @@ const NewsListPage = () => {
 
   const newsList = paginatedNews?.data || [];
   const totalPages = paginatedNews?.pages || 0;
+
+  console.log(paginatedNews);
 
   if (loading) {
     return <LoadingSpinner message={LOADING_NEWS} />;

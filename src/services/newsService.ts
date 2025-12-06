@@ -34,7 +34,7 @@ export const newsService = {
         params.append("q", encodeURIComponent(query));
       }
 
-      params.append("_sort", "created_at");
+      params.append("_sort", "id");
       params.append("_order", "desc");
 
       const response = await fetch(`${url}?${params.toString()}`);
@@ -43,31 +43,20 @@ export const newsService = {
         throw new Error(ERROR_LOAD_NEWS);
       }
 
-      // json-server returns data as array in body, pagination info in headers
-      const data: News[] = await response.json();
+      const data = await response.json();
 
-      // Get pagination info from headers
-      const first = response.headers.get("x-first-page") || "1";
-      const prev = response.headers.get("x-prev-page");
-      const next = response.headers.get("x-next-page");
-      const last = response.headers.get("x-last-page") || "1";
-      const pages = response.headers.get("x-total-count");
-      const items = response.headers.get("x-total-count");
-
-      // Sort data by newest first (client-side as fallback)
-      const sortedData = data.sort(
-        (a: News, b: News) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      // Get total count from Link header or X-Total-Count
+      const totalCount = parseInt(response.headers.get("X-Total-Count") || "0");
+      const totalPages = Math.ceil(totalCount / limit);
 
       const paginatedResponse: PaginatedResponse<News> = {
-        first: parseInt(first),
-        prev: prev ? parseInt(prev) : null,
-        next: next ? parseInt(next) : null,
-        last: parseInt(last),
-        pages: pages ? Math.ceil(parseInt(pages) / limit) : 1,
-        items: items ? parseInt(items) : data.length,
-        data: sortedData,
+        first: 1,
+        prev: page > 1 ? page - 1 : null,
+        next: page < totalPages ? page + 1 : null,
+        last: totalPages,
+        pages: totalPages,
+        items: totalCount,
+        data: data,
       };
 
       return paginatedResponse;
