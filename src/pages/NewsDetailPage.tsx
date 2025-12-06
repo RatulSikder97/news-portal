@@ -28,6 +28,7 @@ import {
 } from "../config/constants";
 import { useAuth } from "../hooks/useAuth";
 import { newsService } from "../services/newsService";
+import { userService } from "../services/userService";
 import type { Comment, News } from "../types";
 
 const NewsDetailPage = () => {
@@ -53,12 +54,22 @@ const NewsDetailPage = () => {
 
       try {
         setLoading(true);
-        const [newsData, commentsData] = await Promise.all([
-          newsService.getNewsById(Number(id)),
-          newsService.getCommentsByNewsId(Number(id)),
-        ]);
+        const newsData = await newsService.getNewsById(Number(id));
+
+        // Enrich comments with user data
+        const enrichedComments = await Promise.all(
+          (newsData.comments || []).map(async (comment) => {
+            try {
+              const userData = await userService.getUserById(comment.user_id);
+              return { ...comment, user: userData };
+            } catch {
+              return comment;
+            }
+          })
+        );
+
         setNews(newsData);
-        setComments(commentsData);
+        setComments(enrichedComments);
         setError("");
       } catch {
         setError(ERROR_LOAD_NEWS_DETAIL);
@@ -105,7 +116,7 @@ const NewsDetailPage = () => {
       setCommentError("");
 
       const newComment: Comment = {
-        id: Date.now(), // Temporary ID
+        id: Date.now(),
         news_id: news.id,
         user_id: user.id,
         text: commentText.trim(),
@@ -116,11 +127,11 @@ const NewsDetailPage = () => {
       const updatedComments = [...news.comments, newComment];
       await newsService.updateNews(news.id, { comments: updatedComments });
 
-      // Fetch updated comments with user data
-      const commentsData = await newsService.getCommentsByNewsId(news.id);
-      setComments(commentsData);
+      // Enrich the new comment with user data
+      const enrichedComment = { ...newComment, user };
 
-      // Update local news state
+      // Update local state
+      setComments([...comments, enrichedComment]);
       setNews({ ...news, comments: updatedComments });
 
       // Clear form

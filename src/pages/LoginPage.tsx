@@ -60,9 +60,7 @@ const LoginPage = () => {
       return;
     }
 
-    const selectedUser = users.find(
-      (user) => user.id === Number(selectedUserId)
-    );
+    const selectedUser = users.find((user) => user.id === +selectedUserId);
 
     if (selectedUser) {
       login(selectedUser);

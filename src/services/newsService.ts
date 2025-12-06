@@ -1,32 +1,64 @@
 import { API_BASE_URL, API_ENDPOINTS } from "../config/api";
-import type { Comment, News } from "../types";
+import {
+  ERROR_CREATE_NEWS,
+  ERROR_DELETE_NEWS,
+  ERROR_LOAD_NEWS,
+  ERROR_LOAD_NEWS_DETAIL,
+  ERROR_LOAD_USERS,
+  ERROR_UPDATE_NEWS,
+} from "../config/constants";
+import type { News } from "../types";
+
+const endpoints = {
+  getAll: `${API_BASE_URL}${API_ENDPOINTS.news}`,
+  getById: (id: number) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+  create: `${API_BASE_URL}${API_ENDPOINTS.news}`,
+  update: (id: number) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+  delete: (id: number) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+};
 
 export const newsService = {
-  async getAllNews(): Promise<News[]> {
+  async getAllNews(
+    page?: number,
+    limit?: number,
+    query?: string
+  ): Promise<News[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.news}`);
+      const url = endpoints.getAll;
+      const params = new URLSearchParams();
+
+      if (page !== undefined && limit !== undefined) {
+        params.append("_page", page.toString());
+        params.append("_limit", limit.toString());
+      }
+
+      if (query) {
+        params.append("q", encodeURIComponent(query));
+      }
+
+      const response = await fetch(url);
+
       if (!response.ok) {
-        throw new Error("Failed to fetch news");
+        throw new Error(ERROR_LOAD_NEWS);
       }
       const news = await response.json();
-      // Sort by created_at in descending order (newest first)
+
+      // Newest first
       return news.sort(
         (a: News, b: News) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     } catch (error) {
-      console.error("Error fetching news:", error);
+      console.error(ERROR_LOAD_NEWS, error);
       throw error;
     }
   },
 
   async getNewsById(id: number): Promise<News> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`
-      );
+      const response = await fetch(`${endpoints.getById(id)}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch news");
+        throw new Error(ERROR_LOAD_NEWS_DETAIL);
       }
 
       const news = await response.json();
@@ -35,220 +67,65 @@ export const newsService = {
         `${API_BASE_URL}${API_ENDPOINTS.users}/${news.author_id}`
       );
       if (!author.ok) {
-        throw new Error("Failed to fetch author");
+        throw new Error(ERROR_LOAD_USERS);
       }
       news.author = await author.json();
       return news;
     } catch (error) {
-      console.error("Error fetching news:", error);
+      console.error(ERROR_LOAD_NEWS_DETAIL, error);
       throw error;
     }
   },
 
   async createNews(newsData: Omit<News, "id" | "comments">): Promise<News> {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.news}`, {
+      const response = await fetch(`${endpoints.create}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ ...newsData, comments: [] }),
       });
+
       if (!response.ok) {
-        throw new Error("Failed to create news");
+        throw new Error(ERROR_CREATE_NEWS);
       }
       return await response.json();
     } catch (error) {
-      console.error("Error creating news:", error);
+      console.error(ERROR_CREATE_NEWS, error);
       throw error;
     }
   },
 
   async updateNews(id: number, newsData: Partial<News>): Promise<News> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newsData),
-        }
-      );
+      const response = await fetch(`${endpoints.update(id)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newsData),
+      });
       if (!response.ok) {
-        throw new Error("Failed to update news");
+        throw new Error(ERROR_UPDATE_NEWS);
       }
       return await response.json();
     } catch (error) {
-      console.error("Error updating news:", error);
+      console.error(ERROR_UPDATE_NEWS, error);
       throw error;
     }
   },
 
   async deleteNews(id: number): Promise<void> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to delete news");
-      }
-    } catch (error) {
-      console.error("Error deleting news:", error);
-      throw error;
-    }
-  },
-
-  async addComment(
-    newsId: number,
-    commentData: Omit<Comment, "id" | "created_at">
-  ): Promise<Comment> {
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.comments}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...commentData,
-          news_id: newsId,
-          created_at: new Date().toISOString(),
-        }),
+      const response = await fetch(`${endpoints.delete(id)}`, {
+        method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error("Failed to add comment");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      throw error;
-    }
-  },
-
-  async getCommentsByNewsId(newsId: number): Promise<Comment[]> {
-    try {
-      // Fetch the news article to get its comments
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.news}/${newsId}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch news");
-      }
-      const news = await response.json();
-      const comments = news.comments || [];
-
-      // Fetch user info for each comment
-      const commentsWithUsers = await Promise.all(
-        comments.map(async (comment: Comment) => {
-          try {
-            const userResponse = await fetch(
-              `${API_BASE_URL}${API_ENDPOINTS.users}/${comment.user_id}`
-            );
-            if (userResponse.ok) {
-              comment.user = await userResponse.json();
-            }
-          } catch (error) {
-            console.error("Error fetching user for comment:", error);
-          }
-          return comment;
-        })
-      );
-
-      return commentsWithUsers;
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      throw error;
-    }
-  },
-
-  async updateComment(
-    commentId: number,
-    commentData: Partial<Omit<Comment, "id" | "created_at">>
-  ): Promise<Comment> {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.comments}/${commentId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(commentData),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to update comment");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error updating comment:", error);
-      throw error;
-    }
-  },
-
-  async updateCommentByNewsIdAndCommentId(
-    newsId: number,
-    commentId: number,
-    commentData: Partial<Omit<Comment, "id" | "created_at">>
-  ): Promise<Comment> {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.news}/${newsId}/comments/${commentId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(commentData),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to update comment");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error updating comment:", error);
-      throw error;
-    }
-  },
-
-  async deleteComment(commentId: number): Promise<void> {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.comments}/${commentId}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to delete comment");
+        throw new Error(ERROR_DELETE_NEWS);
       }
     } catch (error) {
-      console.error("Error deleting comment:", error);
-      throw error;
-    }
-  },
-
-  async deleteCommentByNewsIdAndCommentId(
-    newsId: number,
-    commentId: number
-  ): Promise<void> {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.news}/${newsId}/comments/${commentId}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to delete comment");
-      }
-    } catch (error) {
-      console.error("Error deleting comment:", error);
+      console.error(ERROR_DELETE_NEWS, error);
       throw error;
     }
   },
