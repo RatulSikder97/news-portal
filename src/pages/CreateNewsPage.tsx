@@ -3,7 +3,6 @@ import { FaNewspaper } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorAlert from "../components/common/ErrorAlert";
-import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import {
   APP_TITLE_NAV,
@@ -198,7 +197,6 @@ const CreateNewsPage = () => {
           </form>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

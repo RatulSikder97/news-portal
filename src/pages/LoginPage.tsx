@@ -153,13 +153,6 @@ const LoginPage = () => {
           </form>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="absolute bottom-4 left-0 right-0 text-center">
-        <p className="text-sm text-gray-500">
-          © {new Date().getFullYear()} Ratul Sikder. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 };

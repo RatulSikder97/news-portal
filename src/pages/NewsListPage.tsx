@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { FaNewspaper } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
-import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import NewsCard from "../components/common/NewsCard";
 import {
@@ -39,7 +38,9 @@ const NewsListPage = () => {
           userService.getUsers(),
         ]);
 
-        const usersMap = new Map(usersData.map((u) => [u.id, u]));
+        console.log(usersData);
+
+        const usersMap = new Map(usersData.map((u) => [Number(u.id), u]));
         setUsers(usersMap);
         setNewsList(newsData);
         setError("");
@@ -150,7 +151,6 @@ const NewsListPage = () => {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 };
