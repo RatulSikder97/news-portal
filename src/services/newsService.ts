@@ -56,7 +56,7 @@ export const newsService = {
 
   async getNewsById(id: number): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.getById(id)}`);
+      const response = await fetch(`${endpoints.getById(+id)}`);
       if (!response.ok) {
         throw new Error(ERROR_LOAD_NEWS_DETAIL);
       }

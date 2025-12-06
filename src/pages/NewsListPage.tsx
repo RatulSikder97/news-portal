@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { FaNewspaper } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import NewsCard from "../components/common/NewsCard";
-import NewsIcon from "../components/icons/NewsIcon";
 import {
   APP_TITLE_NAV,
   BTN_CREATE_NEWS,
@@ -81,7 +81,7 @@ const NewsListPage = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">
-                <NewsIcon />
+                <FaNewspaper className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">
                 {APP_TITLE_NAV}
@@ -132,7 +132,7 @@ const NewsListPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {newsList.map((news) => {
               const author = users.get(news.author_id);
-              const isAuthor = user?.id === news.author_id;
+              const isAuthor = user?.id == news.author_id;
 
               return (
                 <NewsCard

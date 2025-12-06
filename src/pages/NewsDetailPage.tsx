@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
+import { FaClock, FaNewspaper } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorAlert from "../components/common/ErrorAlert";
 import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import ClockIcon from "../components/icons/ClockIcon";
-import NewsIcon from "../components/icons/NewsIcon";
 import {
   APP_TITLE_NAV,
   BTN_BACK,
@@ -175,7 +174,7 @@ const NewsDetailPage = () => {
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">
-                  <NewsIcon />
+                  <FaNewspaper className="w-6 h-6 text-white" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">
                   {APP_TITLE_NAV}
@@ -220,7 +219,7 @@ const NewsDetailPage = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">
-                <NewsIcon />
+                <FaNewspaper className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">
                 {APP_TITLE_NAV}
@@ -312,7 +311,7 @@ const NewsDetailPage = () => {
               )}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                  <ClockIcon />
+                  <FaClock className="w-6 h-6 text-gray-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">{LABEL_PUBLISHED}</p>

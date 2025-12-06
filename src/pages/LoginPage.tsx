@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { FaChevronDown } from "react-icons/fa";
 import { SiSimplelogin } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorAlert from "../components/common/ErrorAlert";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import ChevronDownIcon from "../components/icons/ChevronDownIcon";
 import {
   APP_NAME,
   BTN_LOGIN,
@@ -137,7 +137,7 @@ const LoginPage = () => {
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                  <ChevronDownIcon />
+                  <FaChevronDown className="w-4 h-4" />
                 </div>
               </div>
             </div>

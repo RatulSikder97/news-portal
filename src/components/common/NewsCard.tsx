@@ -1,9 +1,6 @@
+import { FaClock, FaEdit, FaEye, FaTrash, FaUser } from "react-icons/fa";
+import { GiChatBubble } from "react-icons/gi";
 import type { News } from "../../types";
-import ClockIcon from "../icons/ClockIcon";
-import EditIcon from "../icons/EditIcon";
-import EyeIcon from "../icons/EyeIcon";
-import TrashIcon from "../icons/TrashIcon";
-import UserIcon from "../icons/UserIcon";
 import Button from "./Button";
 
 interface NewsCardProps {
@@ -40,13 +37,18 @@ const NewsCard = ({
         <div className="flex items-center gap-4">
           {authorName && (
             <div className="flex items-center gap-1.5 text-sm text-gray-700">
-              <UserIcon />
+              <FaUser className="w-4 h-4" />
               <span className="font-medium">{authorName}</span>
             </div>
           )}
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <ClockIcon />
+            <FaClock className="w-4 h-4" />
             <span>{formatDate(news.created_at)}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <GiChatBubble className="w-4 h-4" />
+            <span>{news.comments?.length || 0} comments</span>
           </div>
         </div>
       </div>
@@ -63,7 +65,7 @@ const NewsCard = ({
               onClick={() => onView(news.id)}
               className="flex items-center justify-center gap-2"
             >
-              <EyeIcon />
+              <FaEye className="w-4 h-4" />
             </Button>
           )}
           {onEdit && (
@@ -72,7 +74,7 @@ const NewsCard = ({
               onClick={() => onEdit(news.id)}
               className="flex items-center justify-center gap-2"
             >
-              <EditIcon />
+              <FaEdit className="w-4 h-4" />
             </Button>
           )}
           {onDelete && (
@@ -81,7 +83,7 @@ const NewsCard = ({
               onClick={() => onDelete(news.id)}
               className="flex items-center justify-center gap-2"
             >
-              <TrashIcon />
+              <FaTrash className="w-4 h-4" />
             </Button>
           )}
         </div>

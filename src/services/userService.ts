@@ -9,7 +9,7 @@ export const userService = {
       if (!response.ok) {
         throw new Error(ERROR_LOAD_USERS);
       }
-      return (await response.json()) as User[];
+      return await response.json();
     } catch (error) {
       console.error(ERROR_LOAD_USERS, error);
       throw error;
