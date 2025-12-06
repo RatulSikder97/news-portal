@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import CreateNewsPage from "./pages/CreateNewsPage";
 import LoginPage from "./pages/LoginPage";
 import NewsListPage from "./pages/NewsListPage";
 
@@ -20,6 +21,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <NewsListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/news/create"
+            element={
+              <ProtectedRoute>
+                <CreateNewsPage />
               </ProtectedRoute>
             }
           />

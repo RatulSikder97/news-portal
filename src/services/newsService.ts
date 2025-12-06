@@ -8,7 +8,12 @@ export const newsService = {
       if (!response.ok) {
         throw new Error("Failed to fetch news");
       }
-      return await response.json();
+      const news = await response.json();
+      // Sort by created_at in descending order (newest first)
+      return news.sort(
+        (a: News, b: News) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     } catch (error) {
       console.error("Error fetching news:", error);
       throw error;
