@@ -8,9 +8,13 @@ import NewsIcon from "../components/icons/NewsIcon";
 import {
   APP_TITLE_NAV,
   BTN_BACK,
+  BTN_DELETE_NEWS,
+  BTN_EDIT_NEWS,
   BTN_LOGOUT,
   BTN_POST_COMMENT,
+  CONFIRM_DELETE_NEWS,
   ERROR_COMMENT_REQUIRED,
+  ERROR_DELETE_NEWS,
   ERROR_LOAD_NEWS_DETAIL,
   ERROR_POST_COMMENT,
   LABEL_ADD_COMMENT,
@@ -129,6 +133,24 @@ const NewsDetailPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm(CONFIRM_DELETE_NEWS)) return;
+
+    if (!news) return;
+
+    try {
+      await newsService.deleteNews(news.id);
+      navigate("/news");
+    } catch (error) {
+      console.error("Error deleting news:", error);
+      setError(ERROR_DELETE_NEWS);
+    }
+  };
+
+  const handleEdit = () => {
+    navigate(`/news/${news?.id}/edit`);
+  };
+
   if (loading) {
     return <LoadingSpinner message={LOADING_NEWS_DETAIL} />;
   }
@@ -210,7 +232,7 @@ const NewsDetailPage = () => {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        <div className="mb-8 flex justify-between items-center">
           <Button
             variant="secondary"
             onClick={handleBack}
@@ -231,6 +253,26 @@ const NewsDetailPage = () => {
             </svg>
             {BTN_BACK}
           </Button>
+
+          {/* Edit and Delete buttons - only visible to author */}
+          {user?.id === news.author_id && (
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={handleEdit}
+                className="!w-auto"
+              >
+                {BTN_EDIT_NEWS}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                className="!w-auto"
+              >
+                {BTN_DELETE_NEWS}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* News Article */}

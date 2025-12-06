@@ -7,14 +7,18 @@ export const APP_TITLE_NAV = "News Portal";
 // Page Titles
 export const NEWS_LIST_TITLE = "News Feed";
 export const CREATE_NEWS_TITLE = "Create News";
+export const EDIT_NEWS_TITLE = "Edit News";
 export const NEWS_DETAIL_TITLE = "News Details";
 
 // Button Labels
 export const BTN_LOGIN = "Login";
 export const BTN_LOGOUT = "Logout";
 export const BTN_CREATE_NEWS = "Create News";
+export const BTN_EDIT_NEWS = "Edit News";
+export const BTN_DELETE_NEWS = "Delete News";
 export const BTN_CANCEL = "Cancel";
 export const BTN_SUBMIT = "Submit";
+export const BTN_UPDATE = "Update News";
 export const BTN_BACK = "Back to News";
 
 // Form Labels
@@ -30,6 +34,7 @@ export const LOADING_USERS = "Loading users...";
 export const LOADING_NEWS = "Loading news...";
 export const LOADING_NEWS_DETAIL = "Loading news details...";
 export const SUBMITTING_NEWS = "Creating news...";
+export const UPDATING_NEWS = "Updating news...";
 
 // Error Messages
 export const ERROR_LOAD_USERS = "Failed to load users. Please try again later.";
@@ -38,6 +43,7 @@ export const ERROR_LOAD_NEWS_DETAIL =
   "Failed to load news details. Please try again.";
 export const ERROR_DELETE_NEWS = "Failed to delete news.";
 export const ERROR_CREATE_NEWS = "Failed to create news. Please try again.";
+export const ERROR_UPDATE_NEWS = "Failed to update news. Please try again.";
 export const ERROR_SELECT_USER = "Please select a user";
 export const ERROR_INVALID_USER = "Invalid user selection";
 export const ERROR_TITLE_REQUIRED = "News title cannot be empty.";
