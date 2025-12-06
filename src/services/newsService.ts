@@ -69,7 +69,7 @@ export const newsService = {
       const response = await fetch(
         `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },

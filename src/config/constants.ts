@@ -62,3 +62,9 @@ export const LABEL_PUBLISHED = "Published";
 // Comment Labels
 export const COMMENT_SINGULAR = "comment";
 export const COMMENT_PLURAL = "comments";
+export const LABEL_ADD_COMMENT = "Add a Comment";
+export const PLACEHOLDER_COMMENT = "Write your comment here...";
+export const BTN_POST_COMMENT = "Post Comment";
+export const ERROR_COMMENT_REQUIRED = "Comment text cannot be empty.";
+export const SUBMITTING_COMMENT = "Posting comment...";
+export const ERROR_POST_COMMENT = "Failed to post comment. Please try again.";

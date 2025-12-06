@@ -9,12 +9,17 @@ import {
   APP_TITLE_NAV,
   BTN_BACK,
   BTN_LOGOUT,
+  BTN_POST_COMMENT,
+  ERROR_COMMENT_REQUIRED,
   ERROR_LOAD_NEWS_DETAIL,
+  ERROR_POST_COMMENT,
+  LABEL_ADD_COMMENT,
   LABEL_AUTHOR,
   LABEL_PUBLISHED,
   LOADING_NEWS_DETAIL,
   LOGGED_IN_AS,
   NO_COMMENTS,
+  PLACEHOLDER_COMMENT,
   SECTION_COMMENTS,
 } from "../config/constants";
 import { useAuth } from "../hooks/useAuth";
@@ -30,6 +35,9 @@ const NewsDetailPage = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [commentText, setCommentText] = useState<string>("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,6 +84,49 @@ const NewsDetailPage = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!commentText.trim()) {
+      setCommentError(ERROR_COMMENT_REQUIRED);
+      return;
+    }
+
+    if (!user || !news) return;
+
+    try {
+      setSubmittingComment(true);
+      setCommentError("");
+
+      const newComment: Comment = {
+        id: Date.now(), // Temporary ID
+        news_id: news.id,
+        user_id: user.id,
+        text: commentText.trim(),
+        created_at: new Date().toISOString(),
+      };
+
+      // Update news with new comment using PATCH
+      const updatedComments = [...news.comments, newComment];
+      await newsService.updateNews(news.id, { comments: updatedComments });
+
+      // Fetch updated comments with user data
+      const commentsData = await newsService.getCommentsByNewsId(news.id);
+      setComments(commentsData);
+
+      // Update local news state
+      setNews({ ...news, comments: updatedComments });
+
+      // Clear form
+      setCommentText("");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      setCommentError(ERROR_POST_COMMENT);
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   if (loading) {
@@ -238,6 +289,39 @@ const NewsDetailPage = () => {
             </span>
           </div>
 
+          {/* Add Comment Form */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {LABEL_ADD_COMMENT}
+            </h3>
+            <form onSubmit={handleCommentSubmit} className="space-y-4">
+              <div>
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder={PLACEHOLDER_COMMENT}
+                  rows={4}
+                  disabled={submittingComment}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
+                {commentError && (
+                  <p className="mt-2 text-sm text-red-600">{commentError}</p>
+                )}
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={submittingComment || !commentText.trim()}
+                  className="!w-auto"
+                >
+                  {submittingComment ? "Posting..." : BTN_POST_COMMENT}
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Comments List */}
           {comments.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500">{NO_COMMENTS}</p>
