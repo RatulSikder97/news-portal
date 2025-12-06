@@ -61,6 +61,14 @@
       "author_id": 4,
       "created_at": "2025-12-04T09:00:00Z",
       "comments": []
+    },
+    {
+      "title": "sona",
+      "body": "The landscape of generative AI is shifting. While proprietary APIs are powerful, there is a growing demand for open models—models where the architecture and weights are publicly available. This shift puts control back in the hands of developers, offering transparency, data privacy, and the ability to fine-tune for specific use cases.\n\nTo help you navigate this landscape, we are releasing two new hands-on labs featuring Gemma 3, Google’s latest family of lightweight, state-of-the-art open models.\n\nWhy Gemma?\nBuilt from the same research and technology as Gemini, Gemma models are designed for responsible AI development. Gemma 3 is particularly exciting because it offers multimodal capabilities (text and image) and fits efficiently on smaller hardware footprints while delivering massive performance.\n\nBut running a model on your laptop is very different from running it in production. You need scale, reliability, and hardware acceleration (GPUs). The question is: Where should you deploy?\n\nWe have prepared two different paths for you, depending on your infrastructure needs: Cloud Run or Google Kubernetes Engine (GKE).",
+      "author_id": 4,
+      "created_at": "2025-12-06T19:58:47.710Z",
+      "comments": [],
+      "id": 5
     }
   ]
 }
