@@ -1,4 +1,5 @@
 import { API_BASE_URL, API_ENDPOINTS } from "../config/api";
+import { ERROR_LOAD_USERS } from "../config/constants";
 import type { User } from "../types";
 
 export const userService = {
@@ -6,11 +7,11 @@ export const userService = {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.users}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        throw new Error(ERROR_LOAD_USERS);
       }
-      return await response.json();
+      return (await response.json()) as User[];
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error(ERROR_LOAD_USERS, error);
       throw error;
     }
   },
@@ -21,11 +22,11 @@ export const userService = {
         `${API_BASE_URL}${API_ENDPOINTS.users}/${id}`
       );
       if (!response.ok) {
-        throw new Error("Failed to fetch user");
+        throw new Error(ERROR_LOAD_USERS);
       }
       return await response.json();
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.error(ERROR_LOAD_USERS, error);
       throw error;
     }
   },

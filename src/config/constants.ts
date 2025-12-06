@@ -5,6 +5,7 @@ export const APP_NAME = "News Portal";
 export const APP_TITLE_NAV = "News Portal";
 
 // Page Titles
+export const LOGIN_PAGE_TITLE = "Login";
 export const NEWS_LIST_TITLE = "News Feed";
 export const CREATE_NEWS_TITLE = "Create News";
 export const EDIT_NEWS_TITLE = "Edit News";

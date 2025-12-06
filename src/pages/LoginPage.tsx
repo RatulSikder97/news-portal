@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
+import { SiSimplelogin } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorAlert from "../components/common/ErrorAlert";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ChevronDownIcon from "../components/icons/ChevronDownIcon";
-import NewsIcon from "../components/icons/NewsIcon";
 import {
-  APP_NAME,
   BTN_LOGIN,
   ERROR_INVALID_USER,
   ERROR_LOAD_USERS,
   ERROR_SELECT_USER,
-  LABEL_SELECT_USER,
   LABEL_SELECT_USER_PLACEHOLDER,
   LOADING_USERS,
+  LOGIN_PAGE_TITLE,
 } from "../config/constants";
 import { useAuth } from "../hooks/useAuth";
 import { userService } from "../services/userService";
@@ -23,22 +22,23 @@ const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // States
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
 
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/news");
+      navigate("/news", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
+  // Fetch users on mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        setLoading(true);
         const fetchedUsers = await userService.getUsers();
         setUsers(fetchedUsers);
         setError("");
@@ -52,7 +52,7 @@ const LoginPage = () => {
     fetchUsers();
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedUserId) {
@@ -60,50 +60,66 @@ const LoginPage = () => {
       return;
     }
 
-    const selectedUser = users.find((user) => user.id === +selectedUserId);
+    const selectedUser = users.find((user) => user.id == +selectedUserId);
 
-    if (selectedUser) {
-      login(selectedUser);
-      navigate("/news");
-    } else {
+    if (!selectedUser) {
       setError(ERROR_INVALID_USER);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      login(selectedUser);
+      navigate("/news", { replace: true });
+    } catch {
+      setError("Login failed. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
-    return <LoadingSpinner message={LOADING_USERS} />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner message={LOADING_USERS} />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gray-50">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 space-y-6">
           {/* Header */}
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full mb-3">
-              <NewsIcon />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
+          <div className="text-center space-y-3">
+            <SiSimplelogin className="w-8 h-8 text-gray-600 mx-auto" />
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              {LOGIN_PAGE_TITLE}
+            </h1>
+            <p className="text-gray-600 leading-relaxed">
+              Select your user account to access the news portal
+            </p>
           </div>
 
-          {error && <ErrorAlert message={error} />}
+          {error && (
+            <div className="animate-fadeIn">
+              <ErrorAlert message={error} />
+            </div>
+          )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            {/* User Select */}
-            <div>
-              <label
-                htmlFor="user-select"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {LABEL_SELECT_USER}
-              </label>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
               <div className="relative">
                 <select
-                  id="user-select"
+                  id="user"
                   value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none cursor-pointer"
+                  onChange={(e) => {
+                    setSelectedUserId(e.target.value);
+                    if (error) setError("");
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none cursor-pointer transition-all duration-200"
                   required
+                  disabled={submitting}
                 >
                   <option value="">{LABEL_SELECT_USER_PLACEHOLDER}</option>
                   {users.map((user) => (
@@ -112,14 +128,19 @@ const LoginPage = () => {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
                   <ChevronDownIcon />
                 </div>
               </div>
             </div>
 
-            <Button type="submit" variant="primary" className="w-full">
-              {BTN_LOGIN}
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full py-3 text-base font-semibold rounded-lg transition-all duration-200"
+              disabled={submitting || !selectedUserId}
+            >
+              {submitting ? "Signing in..." : BTN_LOGIN}
             </Button>
           </form>
         </div>
