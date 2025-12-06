@@ -7,7 +7,7 @@ import {
   ERROR_LOAD_USERS,
   ERROR_UPDATE_NEWS,
 } from "../config/constants";
-import type { News } from "../types";
+import type { News, PaginatedResponse } from "../types";
 
 const endpoints = {
   getAll: `${API_BASE_URL}${API_ENDPOINTS.news}`,
@@ -19,35 +19,58 @@ const endpoints = {
 
 export const newsService = {
   async getAllNews(
-    page?: number,
-    limit?: number,
+    page: number = 1,
+    limit: number = 10,
     query?: string
-  ): Promise<News[]> {
+  ): Promise<PaginatedResponse<News>> {
     try {
       const url = endpoints.getAll;
       const params = new URLSearchParams();
 
-      if (page !== undefined && limit !== undefined) {
-        params.append("_page", page.toString());
-        params.append("_limit", limit.toString());
-      }
+      params.append("_page", page.toString());
+      params.append("_limit", limit.toString());
 
       if (query) {
         params.append("q", encodeURIComponent(query));
       }
 
-      const response = await fetch(url);
+      params.append("_sort", "created_at");
+      params.append("_order", "desc");
+
+      const response = await fetch(`${url}?${params.toString()}`);
 
       if (!response.ok) {
         throw new Error(ERROR_LOAD_NEWS);
       }
-      const news = await response.json();
 
-      // Newest first
-      return news.sort(
+      // json-server returns data as array in body, pagination info in headers
+      const data: News[] = await response.json();
+
+      // Get pagination info from headers
+      const first = response.headers.get("x-first-page") || "1";
+      const prev = response.headers.get("x-prev-page");
+      const next = response.headers.get("x-next-page");
+      const last = response.headers.get("x-last-page") || "1";
+      const pages = response.headers.get("x-total-count");
+      const items = response.headers.get("x-total-count");
+
+      // Sort data by newest first (client-side as fallback)
+      const sortedData = data.sort(
         (a: News, b: News) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
+
+      const paginatedResponse: PaginatedResponse<News> = {
+        first: parseInt(first),
+        prev: prev ? parseInt(prev) : null,
+        next: next ? parseInt(next) : null,
+        last: parseInt(last),
+        pages: pages ? Math.ceil(parseInt(pages) / limit) : 1,
+        items: items ? parseInt(items) : data.length,
+        data: sortedData,
+      };
+
+      return paginatedResponse;
     } catch (error) {
       console.error(ERROR_LOAD_NEWS, error);
       throw error;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaNewspaper } from "react-icons/fa";
+import { FaNewspaper, FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -19,30 +19,32 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { newsService } from "../services/newsService";
 import { userService } from "../services/userService";
-import type { News, User } from "../types";
+import type { News, PaginatedResponse, User } from "../types";
 
 const NewsListPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [newsList, setNewsList] = useState<News[]>([]);
+  const [paginatedNews, setPaginatedNews] =
+    useState<PaginatedResponse<News> | null>(null);
   const [users, setUsers] = useState<Map<number, User>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [limit] = useState(6);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const [newsData, usersData] = await Promise.all([
-          newsService.getAllNews(),
+          newsService.getAllNews(currentPage, limit, searchQuery),
           userService.getUsers(),
         ]);
 
-        console.log(usersData);
-
         const usersMap = new Map(usersData.map((u) => [Number(u.id), u]));
         setUsers(usersMap);
-        setNewsList(newsData);
+        setPaginatedNews(newsData);
         setError("");
       } catch {
         setError(ERROR_LOAD_NEWS);
@@ -52,14 +54,18 @@ const NewsListPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [currentPage, limit, searchQuery]);
 
   const handleDelete = async (id: number) => {
     if (!confirm(CONFIRM_DELETE_NEWS)) return;
 
     try {
       await newsService.deleteNews(id);
-      setNewsList(newsList.filter((news) => news.id !== id));
+      // Refetch the current page after deletion
+      const [newsData] = await Promise.all([
+        newsService.getAllNews(currentPage, limit, searchQuery),
+      ]);
+      setPaginatedNews(newsData);
     } catch {
       setError(ERROR_DELETE_NEWS);
     }
@@ -69,6 +75,19 @@ const NewsListPage = () => {
     logout();
     navigate("/login");
   };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const newsList = paginatedNews?.data || [];
+  const totalPages = paginatedNews?.pages || 0;
 
   if (loading) {
     return <LoadingSpinner message={LOADING_NEWS} />;
@@ -119,6 +138,22 @@ const NewsListPage = () => {
           </Button>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaSearch className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search news by title..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
         {error && (
           <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-700">{error}</p>
@@ -130,25 +165,70 @@ const NewsListPage = () => {
             <p className="text-gray-500">{NO_NEWS_FOUND}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {newsList.map((news) => {
-              const author = users.get(news.author_id);
-              const isAuthor = user?.id == news.author_id;
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {newsList.map((news) => {
+                const author = users.get(news.author_id);
+                const isAuthor = user?.id == news.author_id;
 
-              return (
-                <NewsCard
-                  key={news.id}
-                  news={news}
-                  authorName={author?.name}
-                  onView={(id) => navigate(`/news/${id}`)}
-                  onEdit={
-                    isAuthor ? (id) => navigate(`/news/${id}/edit`) : undefined
-                  }
-                  onDelete={isAuthor ? handleDelete : undefined}
-                />
-              );
-            })}
-          </div>
+                return (
+                  <NewsCard
+                    key={news.id}
+                    news={news}
+                    authorName={author?.name}
+                    onView={(id) => navigate(`/news/${id}`)}
+                    onEdit={
+                      isAuthor
+                        ? (id) => navigate(`/news/${id}/edit`)
+                        : undefined
+                    }
+                    onDelete={isAuthor ? handleDelete : undefined}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="!w-auto px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 rounded ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <Button
+                  variant="secondary"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="!w-auto px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
