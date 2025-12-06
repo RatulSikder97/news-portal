@@ -10,6 +10,7 @@ export interface Comment {
   user_id: number;
   text: string;
   created_at: string;
+  user?: User;
 }
 
 export interface News {
@@ -19,4 +20,5 @@ export interface News {
   author_id: number;
   created_at: string;
   comments: Comment[];
+  author?: User;
 }

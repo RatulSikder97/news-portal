@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import CreateNewsPage from "./pages/CreateNewsPage";
 import LoginPage from "./pages/LoginPage";
+import NewsDetailPage from "./pages/NewsDetailPage";
 import NewsListPage from "./pages/NewsListPage";
 
 function App() {
@@ -29,6 +30,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreateNewsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/news/:id"
+            element={
+              <ProtectedRoute>
+                <NewsDetailPage />
               </ProtectedRoute>
             }
           />
