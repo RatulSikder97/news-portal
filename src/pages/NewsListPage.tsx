@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
+import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import NewsCard from "../components/common/NewsCard";
 import NewsIcon from "../components/icons/NewsIcon";
@@ -149,6 +150,7 @@ const NewsListPage = () => {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 };

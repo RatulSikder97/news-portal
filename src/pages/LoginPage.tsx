@@ -6,6 +6,7 @@ import ErrorAlert from "../components/common/ErrorAlert";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ChevronDownIcon from "../components/icons/ChevronDownIcon";
 import {
+  APP_NAME,
   BTN_LOGIN,
   ERROR_INVALID_USER,
   ERROR_LOAD_USERS,
@@ -87,8 +88,15 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gray-50">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gray-50 relative overflow-hidden">
+      {/* Watermark */}
+      <div className="absolute top-[15%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+        <div className="text-[10rem] font-black text-gray-400 opacity-10 select-none transform whitespace-nowrap">
+          {APP_NAME}
+        </div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 space-y-6">
           {/* Header */}
           <div className="text-center space-y-3">
@@ -145,6 +153,13 @@ const LoginPage = () => {
           </form>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 left-0 right-0 text-center">
+        <p className="text-sm text-gray-500">
+          © {new Date().getFullYear()} Ratul Sikder. All rights reserved.
+        </p>
+      </footer>
     </div>
   );
 };

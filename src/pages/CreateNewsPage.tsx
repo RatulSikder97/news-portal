@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorAlert from "../components/common/ErrorAlert";
+import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import NewsIcon from "../components/icons/NewsIcon";
 import {
@@ -197,6 +198,7 @@ const CreateNewsPage = () => {
           </form>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
