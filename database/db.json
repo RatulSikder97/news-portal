@@ -27,7 +27,7 @@
       "title": "Breaking: New Technology Revolutionizes Communication",
       "body": "In a groundbreaking development, scientists have unveiled a new communication technology that promises to change the way we interact with each other. This innovation combines quantum computing with advanced AI algorithms to enable instantaneous and secure global communications. Experts believe this could be the biggest leap forward since the internet.",
       "author_id": 1,
-      "createdAt": "2025-12-01T10:00:00Z",
+      "created_at": "2025-12-01T10:00:00Z",
       "comments": []
     },
     {
@@ -35,7 +35,7 @@
       "title": "Climate Change: World Leaders Agree on New Action Plan",
       "body": "World leaders from over 150 countries have gathered at the Global Climate Summit to discuss and approve a comprehensive action plan to combat climate change. The plan includes ambitious targets for carbon emission reductions, renewable energy adoption, and funding for developing nations to transition to green energy. This historic agreement marks a significant step toward a sustainable future.",
       "author_id": 2,
-      "createdAt": "2025-12-02T08:30:00Z",
+      "created_at": "2025-12-02T08:30:00Z",
       "comments": []
     },
     {
@@ -43,7 +43,7 @@
       "title": "Sports: Local Team Wins National Championship",
       "body": "In an thrilling final match, our local basketball team has won the national championship after a nail-biting overtime victory. The team showed incredible resilience and teamwork throughout the season, overcoming numerous challenges to reach the pinnacle of success. This is the first championship win in the team's 20-year history, making it even more special for fans and players alike.",
       "author_id": 3,
-      "createdAt": "2025-12-03T18:00:00Z",
+      "created_at": "2025-12-03T18:00:00Z",
       "comments": []
     },
     {
@@ -51,7 +51,7 @@
       "title": "Education: Universities Embrace Hybrid Learning Models",
       "body": "Major universities across the country are permanently adopting hybrid learning models that combine in-person and online education. This shift, accelerated by recent global events, has proven to increase accessibility and flexibility for students while maintaining educational quality. Institutions are investing heavily in technology infrastructure and teacher training to ensure the success of these new learning environments.",
       "author_id": 4,
-      "createdAt": "2025-12-04T09:00:00Z",
+      "created_at": "2025-12-04T09:00:00Z",
       "comments": []
     }
   ]

@@ -31,7 +31,7 @@ const Button = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-2 px-4 rounded-md font-medium focus:outline-none focus:ring-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${className}`}
+      className={`py-2 px-4 rounded-md font-medium focus:outline-none focus:ring-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${className}`}
     >
       {children}
     </button>

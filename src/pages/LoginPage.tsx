@@ -5,6 +5,16 @@ import ErrorAlert from "../components/common/ErrorAlert";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ChevronDownIcon from "../components/icons/ChevronDownIcon";
 import NewsIcon from "../components/icons/NewsIcon";
+import {
+  APP_NAME,
+  BTN_LOGIN,
+  ERROR_INVALID_USER,
+  ERROR_LOAD_USERS,
+  ERROR_SELECT_USER,
+  LABEL_SELECT_USER,
+  LABEL_SELECT_USER_PLACEHOLDER,
+  LOADING_USERS,
+} from "../config/constants";
 import { useAuth } from "../hooks/useAuth";
 import { userService } from "../services/userService";
 import type { User } from "../types";
@@ -33,7 +43,7 @@ const LoginPage = () => {
         setUsers(fetchedUsers);
         setError("");
       } catch {
-        setError("Failed to load users. Please try again later.");
+        setError(ERROR_LOAD_USERS);
       } finally {
         setLoading(false);
       }
@@ -46,7 +56,7 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!selectedUserId) {
-      setError("Please select a user");
+      setError(ERROR_SELECT_USER);
       return;
     }
 
@@ -58,12 +68,12 @@ const LoginPage = () => {
       login(selectedUser);
       navigate("/news");
     } else {
-      setError("Invalid user selection");
+      setError(ERROR_INVALID_USER);
     }
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading users..." />;
+    return <LoadingSpinner message={LOADING_USERS} />;
   }
 
   return (
@@ -75,7 +85,7 @@ const LoginPage = () => {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full mb-3">
               <NewsIcon />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">News Portal</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
           </div>
 
           {error && <ErrorAlert message={error} />}
@@ -87,7 +97,7 @@ const LoginPage = () => {
                 htmlFor="user-select"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Select User
+                {LABEL_SELECT_USER}
               </label>
               <div className="relative">
                 <select
@@ -97,7 +107,7 @@ const LoginPage = () => {
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none cursor-pointer"
                   required
                 >
-                  <option value="">Select a user</option>
+                  <option value="">{LABEL_SELECT_USER_PLACEHOLDER}</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name}
@@ -110,8 +120,8 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <Button type="submit" variant="primary">
-              Login
+            <Button type="submit" variant="primary" className="w-full">
+              {BTN_LOGIN}
             </Button>
           </form>
         </div>
