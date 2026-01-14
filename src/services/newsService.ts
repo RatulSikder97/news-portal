@@ -4,17 +4,20 @@ import {
   ERROR_DELETE_NEWS,
   ERROR_LOAD_NEWS,
   ERROR_LOAD_NEWS_DETAIL,
-  ERROR_LOAD_USERS,
+
   ERROR_UPDATE_NEWS,
+  ERROR_POST_COMMENT,
 } from "../config/constants";
 import type { News, PaginatedResponse } from "../types";
 
 const endpoints = {
   getAll: `${API_BASE_URL}${API_ENDPOINTS.news}`,
-  getById: (id: number) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+  getById: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
   create: `${API_BASE_URL}${API_ENDPOINTS.news}`,
-  update: (id: number) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
-  delete: (id: number) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+  update: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+  delete: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
+  addComment: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}/comments`,
+  removeComment: (id: string, commentId: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}/comments/${commentId}`,
 };
 
 export const newsService = {
@@ -34,7 +37,7 @@ export const newsService = {
         params.append("q", encodeURIComponent(query));
       }
 
-      params.append("_sort", "id");
+      params.append("_sort", "_id");
       params.append("_order", "desc");
 
       const response = await fetch(`${url}?${params.toString()}`, {
@@ -69,9 +72,9 @@ export const newsService = {
     }
   },
 
-  async getNewsById(id: number): Promise<News> {
+  async getNewsById(id: string): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.getById(+id)}`, {
+      const response = await fetch(`${endpoints.getById(id)}`, {
         headers: getAuthHeaders(),
       });
       if (!response.ok) {
@@ -81,17 +84,27 @@ export const newsService = {
       const json = await response.json();
       const news = json.data;
 
-      const authorResponse = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.users}/${news.author_id}`,
-        {
-          headers: getAuthHeaders(),
+      // Author is commonly populated by backend now, but if not we fetch it.
+      // Current backend populates comments but maybe not author in deep way if simple ObjectId?
+      // Actually backend schema says author_id is ObjectId ref 'User'.
+      // NewsService.findOne populates 'comments'. It does NOT populate 'author_id' explicitly in my previous code 
+      // (only 'comments'). So we might still need to fetch author if backend doesn't populate it.
+      // However, frontend types say `author?: User`.
+
+      // Let's keep the author fetch logic for now to be safe, assuming backend returns author_id as string.
+      if (news.author_id && typeof news.author_id === 'string') {
+        const authorResponse = await fetch(
+          `${API_BASE_URL}${API_ENDPOINTS.users}/${news.author_id}`,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
+        if (authorResponse.ok) {
+          const authorJson = await authorResponse.json();
+          news.author = authorJson.data;
         }
-      );
-      if (!authorResponse.ok) {
-        throw new Error(ERROR_LOAD_USERS);
       }
-      const authorJson = await authorResponse.json();
-      news.author = authorJson.data;
+
       return news;
     } catch (error) {
       console.error(ERROR_LOAD_NEWS_DETAIL, error);
@@ -99,7 +112,7 @@ export const newsService = {
     }
   },
 
-  async createNews(newsData: Omit<News, "id" | "comments">): Promise<News> {
+  async createNews(newsData: Omit<News, "_id" | "comments" | "author_id" | "created_at">): Promise<News> {
     try {
       const response = await fetch(`${endpoints.create}`, {
         method: "POST",
@@ -107,7 +120,7 @@ export const newsService = {
           "Content-Type": "application/json",
           ...getAuthHeaders(),
         },
-        body: JSON.stringify({ ...newsData, comments: [] }),
+        body: JSON.stringify(newsData),
       });
 
       if (!response.ok) {
@@ -121,15 +134,18 @@ export const newsService = {
     }
   },
 
-  async updateNews(id: number, newsData: Partial<News>): Promise<News> {
+  async updateNews(id: string, newsData: Partial<News>): Promise<News> {
     try {
+      // Remove restricted fields
+      const { _id, author_id, created_at, comments, ...updateData } = newsData as any;
+
       const response = await fetch(`${endpoints.update(id)}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           ...getAuthHeaders(),
         },
-        body: JSON.stringify(newsData),
+        body: JSON.stringify(updateData),
       });
       if (!response.ok) {
         throw new Error(ERROR_UPDATE_NEWS);
@@ -142,7 +158,7 @@ export const newsService = {
     }
   },
 
-  async deleteNews(id: number): Promise<void> {
+  async deleteNews(id: string): Promise<void> {
     try {
       const response = await fetch(`${endpoints.delete(id)}`, {
         method: "DELETE",
@@ -156,4 +172,44 @@ export const newsService = {
       throw error;
     }
   },
+
+  async addComment(newsId: string, text: string): Promise<News> {
+    try {
+      const response = await fetch(`${endpoints.addComment(newsId)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(ERROR_POST_COMMENT);
+      }
+      const json = await response.json();
+      return json.data; // Backend returns the updated News object
+    } catch (error) {
+      console.error(ERROR_POST_COMMENT, error);
+      throw error;
+    }
+  },
+
+  async removeComment(newsId: string, commentId: string): Promise<News> {
+    try {
+      const response = await fetch(`${endpoints.removeComment(newsId, commentId)}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete comment");
+      }
+      const json = await response.json();
+      return json.data;
+    } catch (error) {
+      console.error("Failed to delete comment", error);
+      throw error;
+    }
+  }
 };

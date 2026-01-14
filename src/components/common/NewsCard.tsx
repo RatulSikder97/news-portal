@@ -6,9 +6,9 @@ import Button from "./Button";
 interface NewsCardProps {
   news: News;
   authorName?: string;
-  onView?: (newsId: number) => void;
-  onEdit?: (newsId: number) => void;
-  onDelete?: (newsId: number) => void;
+  onView?: (newsId: string) => void;
+  onEdit?: (newsId: string) => void;
+  onDelete?: (newsId: string) => void;
   showActions?: boolean;
 }
 
@@ -62,7 +62,7 @@ const NewsCard = ({
           {onView && (
             <Button
               variant="primary"
-              onClick={() => onView(news.id)}
+              onClick={() => onView(news._id)}
               className="flex items-center justify-center gap-2"
             >
               <FaEye className="w-4 h-4" />
@@ -71,7 +71,7 @@ const NewsCard = ({
           {onEdit && (
             <Button
               variant="secondary"
-              onClick={() => onEdit(news.id)}
+              onClick={() => onEdit(news._id)}
               className="flex items-center justify-center gap-2"
             >
               <FaEdit className="w-4 h-4" />
@@ -80,7 +80,7 @@ const NewsCard = ({
           {onDelete && (
             <Button
               variant="danger"
-              onClick={() => onDelete(news.id)}
+              onClick={() => onDelete(news._id)}
               className="flex items-center justify-center gap-2"
             >
               <FaTrash className="w-4 h-4" />

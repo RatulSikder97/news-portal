@@ -19,7 +19,7 @@ export const userService = {
     }
   },
 
-  async getUserById(id: number): Promise<User> {
+  async getUserById(id: string): Promise<User> {
     try {
       const response = await fetch(
         `${API_BASE_URL}${API_ENDPOINTS.users}/${id}`,
@@ -51,7 +51,12 @@ export const userService = {
       if (!response.ok) {
         throw new Error("Login failed");
       }
-      return await response.json();
+      const json = await response.json();
+      const userData = json.data;
+      if (userData.user && userData.user.id && !userData.user._id) {
+        userData.user._id = userData.user.id;
+      }
+      return userData;
     } catch (error) {
       console.error("Login failed", error);
       throw error;
@@ -75,6 +80,9 @@ export const userService = {
         throw new Error("Registration failed");
       }
       const json = await response.json();
+      if (json.data && json.data.id && !json.data._id) {
+        json.data._id = json.data.id;
+      }
       return json.data;
     } catch (error) {
       console.error("Registration failed", error);
@@ -95,6 +103,9 @@ export const userService = {
         throw new Error("Failed to fetch profile");
       }
       const json = await response.json();
+      if (json.data && json.data.id && !json.data._id) {
+        json.data._id = json.data.id;
+      }
       return json.data;
     } catch (error) {
       console.error("Failed to fetch profile", error);

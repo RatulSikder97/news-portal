@@ -31,7 +31,7 @@ const NewsListPage = () => {
     const navigate = useNavigate();
     const [paginatedNews, setPaginatedNews] =
         useState<PaginatedResponse<News> | null>(null);
-    const [users, setUsers] = useState<Map<number, User>>(new Map());
+    const [users, setUsers] = useState<Map<string, User>>(new Map());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +48,7 @@ const NewsListPage = () => {
                     userService.getUsers(),
                 ]);
 
-                const usersMap = new Map(usersData.map((u) => [u.id, u]));
+                const usersMap = new Map(usersData.map((u) => [u._id, u]));
                 setUsers(usersMap);
                 setPaginatedNews(newsData);
                 setError("");
@@ -62,7 +62,7 @@ const NewsListPage = () => {
         fetchData();
     }, [currentPage, limit, searchQuery]);
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         if (!confirm(CONFIRM_DELETE_NEWS)) return;
 
         try {
@@ -184,11 +184,11 @@ const NewsListPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {newsList.map((news) => {
                                 const author = users.get(news.author_id);
-                                const isAuthor = user?.id == news.author_id;
+                                const isAuthor = user?._id === news.author_id;
 
                                 return (
                                     <NewsCard
-                                        key={news.id}
+                                        key={news._id}
                                         news={news}
                                         authorName={author?.name}
                                         onView={(id) => navigate(`/news/${id}`)}
@@ -218,11 +218,10 @@ const NewsListPage = () => {
                                         <button
                                             key={page}
                                             onClick={() => handlePageChange(page)}
-                                            className={`px-3 py-1 rounded ${
-                                                currentPage === page
+                                            className={`px-3 py-1 rounded ${currentPage === page
                                                     ? "bg-blue-600 text-white"
                                                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                                            }`}
+                                                }`}
                                         >
                                             {page}
                                         </button>

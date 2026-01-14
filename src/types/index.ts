@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  _id: string; // Backend uses _id
   name: string;
   email: string;
 }
@@ -7,7 +7,6 @@ export interface User {
 export interface LoginCredentials {
   email: string;
   password?: string;
-  id?: number;
 }
 
 export interface RegisterData {
@@ -22,19 +21,19 @@ export interface AuthResponse {
 }
 
 export interface Comment {
-  id: number;
-  news_id: number;
-  user_id: number;
+  _id: string;
+  news_id: string;
+  user_id: string;
   text: string;
   created_at: string;
   user?: User;
 }
 
 export interface News {
-  id: number;
+  _id: string; // Backend uses _id
   title: string;
   body: string;
-  author_id: number;
+  author_id: string;
   created_at: string;
   comments: Comment[];
   author?: User;

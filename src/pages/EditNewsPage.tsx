@@ -48,10 +48,10 @@ const EditNewsPage = () => {
 
       try {
         setLoading(true);
-        const newsData = await newsService.getNewsById(Number(id));
+        const newsData = await newsService.getNewsById(id);
 
         // Check if logged-in user is the author
-        if (user?.id !== newsData.author_id) {
+        if (user?._id !== newsData.author_id) {
           navigate("/news");
           return;
         }
@@ -95,12 +95,12 @@ const EditNewsPage = () => {
       setSubmitting(true);
       setError("");
 
-      await newsService.updateNews(news.id, {
+      await newsService.updateNews(news._id, {
         title: title.trim(),
         body: body.trim(),
       });
 
-      navigate(`/news/${news.id}`);
+      navigate(`/news/${news._id}`);
     } catch {
       setError(ERROR_UPDATE_NEWS);
       setSubmitting(false);
@@ -235,9 +235,8 @@ const EditNewsPage = () => {
                   {LABEL_NEWS_CONTENT}
                 </label>
                 <span
-                  className={`text-sm ${
-                    characterCount < 20 ? "text-red-600" : "text-gray-500"
-                  }`}
+                  className={`text-sm ${characterCount < 20 ? "text-red-600" : "text-gray-500"
+                    }`}
                 >
                   {characterCount} characters
                   {characterCount < 20 && ` (minimum 20 required)`}

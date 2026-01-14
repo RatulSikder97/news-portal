@@ -53,12 +53,14 @@ const NewsDetailPage = () => {
 
       try {
         setLoading(true);
-        const newsData = await newsService.getNewsById(Number(id));
+        const newsData = await newsService.getNewsById(id);
 
         // Enrich comments with user data
+        // Note: Check if comments are populated properly by backend. If they are just object refs with user_id, we fetch users.
         const enrichedComments = await Promise.all(
           (newsData.comments || []).map(async (comment) => {
             try {
+              // Ensure user_id is treated as string
               const userData = await userService.getUserById(comment.user_id);
               return { ...comment, user: userData };
             } catch {
@@ -114,26 +116,25 @@ const NewsDetailPage = () => {
       setSubmittingComment(true);
       setCommentError("");
 
-      const newComment: Comment = {
-        id: Date.now(),
-        news_id: news.id,
-        user_id: user.id,
-        text: commentText.trim(),
-        created_at: new Date().toISOString(),
-      };
+      // Use the new addComment endpoint
+      const updatedNews = await newsService.addComment(news._id, commentText.trim());
 
-      // Update news with new comment using PATCH
-      const updatedComments = [...news.comments, newComment];
-      await newsService.updateNews(news.id, { comments: updatedComments });
+      // The backend returns the updated news with comments populated (but maybe not users deep populated)
+      // We need to re-enrich the comments or just append the new one locally if we know the user
 
-      // Enrich the new comment with user data
-      const enrichedComment = { ...newComment, user };
+      // Find the new comment in updatedNews.comments
+      // Logic: it's likely the last one, or we filter by verifying what is not in current state.
+      // But simplified approach: just take the comments from updatedNews and enrich them all again or just the last one.
+      // Easiest: append our predicted new comment structure locally for instant feedback, then re-fetch or use backend response.
+      // Better: Use backend response to be sure of ID.
 
-      // Update local state
-      setComments([...comments, enrichedComment]);
-      setNews({ ...news, comments: updatedComments });
+      const latestComment = updatedNews.comments[updatedNews.comments.length - 1];
+      const enrichedLatestComment = { ...latestComment, user };
 
-      // Clear form
+      const newCommentsList = [...comments, enrichedLatestComment];
+
+      setNews(updatedNews);
+      setComments(newCommentsList);
       setCommentText("");
     } catch (error) {
       console.error("Error posting comment:", error);
@@ -149,7 +150,7 @@ const NewsDetailPage = () => {
     if (!news) return;
 
     try {
-      await newsService.deleteNews(news.id);
+      await newsService.deleteNews(news._id);
       navigate("/news");
     } catch (error) {
       console.error("Error deleting news:", error);
@@ -158,7 +159,7 @@ const NewsDetailPage = () => {
   };
 
   const handleEdit = () => {
-    navigate(`/news/${news?.id}/edit`);
+    navigate(`/news/${news?._id}/edit`);
   };
 
   if (loading) {
@@ -265,7 +266,7 @@ const NewsDetailPage = () => {
           </Button>
 
           {/* Edit and Delete buttons - only visible to author */}
-          {user?.id === news.author_id && (
+          {user?._id === news.author_id && (
             <div className="flex gap-2">
               <Button
                 variant="secondary"
@@ -388,7 +389,7 @@ const NewsDetailPage = () => {
                 const commenterName = commenter?.name || "Unknown User";
                 return (
                   <div
-                    key={comment.id}
+                    key={comment._id}
                     className="border-l-4 border-blue-500 bg-gray-50 rounded-r-lg p-6 hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-start gap-4">

@@ -59,8 +59,6 @@ const CreateNewsPage = () => {
       await newsService.createNews({
         title: title.trim(),
         body: body.trim(),
-        author_id: user.id,
-        created_at: new Date().toISOString(),
       });
 
       // Redirect to news list page
