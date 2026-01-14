@@ -1,38 +1,38 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
-import { Comment, CommentSchema } from "./comment.schema";
+import { Document, SchemaTypes, Types } from "mongoose";
 
 export type NewsDocument = News & Document;
 
 @Schema({ collection: "news" })
 export class News {
-  @Prop({ required: true, unique: true })
-  id: number;
-
   @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
   body: string;
 
-  @Prop({ required: true })
-  author_id: number;
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
+  author_id: Types.ObjectId;
 
   @Prop({ required: true })
   created_at: string;
-
-  @Prop({ type: [CommentSchema], default: [] })
-  comments: Comment[];
 }
 
 export const NewsSchema = SchemaFactory.createForClass(News);
 
-// Transform output to match frontend expectations
+// Virtual for comments
+NewsSchema.virtual('comments', {
+  ref: 'Comment',
+  localField: '_id',
+  foreignField: 'news_id',
+});
+
 NewsSchema.set("toJSON", {
   virtuals: true,
-  transform: (doc, ret) => {
-    delete ret._id;
+  transform: (doc, ret: any) => {
     delete ret.__v;
+    delete ret.id;
     return ret;
   },
 });
+NewsSchema.set("toObject", { virtuals: true });

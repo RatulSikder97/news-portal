@@ -4,6 +4,23 @@ export interface User {
   email: string;
 }
 
+export interface LoginCredentials {
+  email: string;
+  password?: string;
+  id?: number;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password?: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  user: User;
+}
+
 export interface Comment {
   id: number;
   news_id: number;

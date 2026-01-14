@@ -1,22 +1,22 @@
 import { Type } from "class-transformer";
 import {
   IsArray,
-  IsNumber,
+  IsMongoId,
   IsOptional,
   IsString,
   ValidateNested,
 } from "class-validator";
 
 export class CommentDto {
-  @IsNumber()
+  @IsMongoId()
   @IsOptional()
-  id?: number;
+  _id?: string;
 
-  @IsNumber()
-  news_id: number;
+  @IsMongoId()
+  news_id: string;
 
-  @IsNumber()
-  user_id: number;
+  @IsMongoId()
+  user_id: string;
 
   @IsString()
   text: string;
@@ -27,28 +27,17 @@ export class CommentDto {
 }
 
 export class CreateNewsDto {
-  @IsNumber()
-  @IsOptional()
-  id?: number;
-
   @IsString()
   title: string;
 
   @IsString()
   body: string;
 
-  @IsNumber()
-  author_id: number;
+
 
   @IsString()
   @IsOptional()
   created_at?: string;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CommentDto)
-  @IsOptional()
-  comments?: CommentDto[];
 }
 
 export class UpdateNewsDto {
@@ -60,24 +49,15 @@ export class UpdateNewsDto {
   @IsOptional()
   body?: string;
 
-  @IsNumber()
-  @IsOptional()
-  author_id?: number;
+
 
   @IsString()
   @IsOptional()
   created_at?: string;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CommentDto)
-  @IsOptional()
-  comments?: CommentDto[];
 }
 
 export class AddCommentDto {
-  @IsNumber()
-  user_id: number;
+
 
   @IsString()
   text: string;

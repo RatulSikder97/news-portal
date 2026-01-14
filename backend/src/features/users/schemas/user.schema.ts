@@ -5,24 +5,27 @@ export type UserDocument = User & Document;
 
 @Schema({ collection: "users" })
 export class User {
-  @Prop({ required: true, unique: true })
-  id: number;
+  _id: any;
 
   @Prop({ required: true })
   name: string;
 
   @Prop({ required: true })
   email: string;
+
+  @Prop({ required: true })
+  password: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Add a virtual for _id to id transformation
+// Ensure _id is kept and virtual id is removed
 UserSchema.set("toJSON", {
   virtuals: true,
-  transform: (doc, ret) => {
-    delete ret._id;
+  transform: (doc, ret: any) => {
     delete ret.__v;
+    delete ret.id;
+    delete ret.password;
     return ret;
   },
 });

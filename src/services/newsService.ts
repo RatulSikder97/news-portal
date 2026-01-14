@@ -1,4 +1,4 @@
-import { API_BASE_URL, API_ENDPOINTS } from "../config/api";
+import { API_BASE_URL, API_ENDPOINTS, getAuthHeaders } from "../config/api";
 import {
   ERROR_CREATE_NEWS,
   ERROR_DELETE_NEWS,
@@ -37,13 +37,16 @@ export const newsService = {
       params.append("_sort", "id");
       params.append("_order", "desc");
 
-      const response = await fetch(`${url}?${params.toString()}`);
+      const response = await fetch(`${url}?${params.toString()}`, {
+        headers: getAuthHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(ERROR_LOAD_NEWS);
       }
 
-      const data = await response.json();
+      const json = await response.json();
+      const data = json.data;
 
       // Get total count from Link header or X-Total-Count
       const totalCount = parseInt(response.headers.get("X-Total-Count") || "0");
@@ -68,20 +71,27 @@ export const newsService = {
 
   async getNewsById(id: number): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.getById(+id)}`);
+      const response = await fetch(`${endpoints.getById(+id)}`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) {
         throw new Error(ERROR_LOAD_NEWS_DETAIL);
       }
 
-      const news = await response.json();
+      const json = await response.json();
+      const news = json.data;
 
-      const author = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.users}/${news.author_id}`
+      const authorResponse = await fetch(
+        `${API_BASE_URL}${API_ENDPOINTS.users}/${news.author_id}`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
-      if (!author.ok) {
+      if (!authorResponse.ok) {
         throw new Error(ERROR_LOAD_USERS);
       }
-      news.author = await author.json();
+      const authorJson = await authorResponse.json();
+      news.author = authorJson.data;
       return news;
     } catch (error) {
       console.error(ERROR_LOAD_NEWS_DETAIL, error);
@@ -95,6 +105,7 @@ export const newsService = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({ ...newsData, comments: [] }),
       });
@@ -102,7 +113,8 @@ export const newsService = {
       if (!response.ok) {
         throw new Error(ERROR_CREATE_NEWS);
       }
-      return await response.json();
+      const json = await response.json();
+      return json.data;
     } catch (error) {
       console.error(ERROR_CREATE_NEWS, error);
       throw error;
@@ -115,13 +127,15 @@ export const newsService = {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(newsData),
       });
       if (!response.ok) {
         throw new Error(ERROR_UPDATE_NEWS);
       }
-      return await response.json();
+      const json = await response.json();
+      return json.data;
     } catch (error) {
       console.error(ERROR_UPDATE_NEWS, error);
       throw error;
@@ -132,6 +146,7 @@ export const newsService = {
     try {
       const response = await fetch(`${endpoints.delete(id)}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
       if (!response.ok) {
         throw new Error(ERROR_DELETE_NEWS);

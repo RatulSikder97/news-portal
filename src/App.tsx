@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import CreateNewsPage from "./pages/CreateNewsPage";
 import EditNewsPage from "./pages/EditNewsPage";
+import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import NewsDetailPage from "./pages/NewsDetailPage";
 import NewsListPage from "./pages/NewsListPage";
@@ -20,6 +21,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route
               path="/news"
               element={

@@ -4,26 +4,28 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
   Res,
+  UseGuards,
+  Request,
 } from "@nestjs/common";
 import { Response } from "express";
+import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { AddCommentDto, CreateNewsDto, UpdateNewsDto } from "./dto/news.dto";
 import { NewsService } from "./news.service";
 
 @Controller("news")
 export class NewsController {
-  constructor(private readonly newsService: NewsService) {}
+  constructor(private readonly newsService: NewsService) { }
 
   @Get()
   async findAll(
     @Query("_page") page: string = "1",
     @Query("_limit") limit: string = "10",
     @Query("q") query?: string,
-    @Query("_sort") sort: string = "id",
+    @Query("_sort") sort: string = "_id",
     @Query("_order") order: "asc" | "desc" = "desc",
     @Res({ passthrough: true }) res?: Response
   ) {
@@ -38,7 +40,7 @@ export class NewsController {
       order
     );
 
-    // Set X-Total-Count header for pagination (like json-server)
+    // Set X-Total-Count header for pagination
     if (res) {
       res.setHeader("X-Total-Count", total.toString());
     }
@@ -47,42 +49,50 @@ export class NewsController {
   }
 
   @Get(":id")
-  findOne(@Param("id", ParseIntPipe) id: number) {
+  findOne(@Param("id") id: string) {
     return this.newsService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createNewsDto: CreateNewsDto) {
-    return this.newsService.create(createNewsDto);
+  create(@Body() createNewsDto: CreateNewsDto, @Request() req) {
+    return this.newsService.create(createNewsDto, req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(":id")
   update(
-    @Param("id", ParseIntPipe) id: number,
-    @Body() updateNewsDto: UpdateNewsDto
+    @Param("id") id: string,
+    @Body() updateNewsDto: UpdateNewsDto,
+    @Request() req
   ) {
-    return this.newsService.update(id, updateNewsDto);
+    return this.newsService.update(id, updateNewsDto, req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(":id")
-  remove(@Param("id", ParseIntPipe) id: number) {
-    return this.newsService.remove(id);
+  remove(@Param("id") id: string, @Request() req) {
+    return this.newsService.remove(id, req.user.id);
   }
 
   // Comment endpoints
+  @UseGuards(JwtAuthGuard)
   @Post(":id/comments")
   addComment(
-    @Param("id", ParseIntPipe) id: number,
-    @Body() addCommentDto: AddCommentDto
+    @Param("id") id: string,
+    @Body() addCommentDto: AddCommentDto,
+    @Request() req
   ) {
-    return this.newsService.addComment(id, addCommentDto);
+    return this.newsService.addComment(id, addCommentDto, req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(":id/comments/:commentId")
   removeComment(
-    @Param("id", ParseIntPipe) id: number,
-    @Param("commentId", ParseIntPipe) commentId: number
+    @Param("id") id: string,
+    @Param("commentId") commentId: string,
+    @Request() req
   ) {
-    return this.newsService.removeComment(id, commentId);
+    return this.newsService.removeComment(id, commentId, req.user.id);
   }
 }

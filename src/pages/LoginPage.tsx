@@ -1,31 +1,21 @@
 import { useEffect, useState } from "react";
-import { FaChevronDown } from "react-icons/fa";
 import { SiSimplelogin } from "react-icons/si";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorAlert from "../components/common/ErrorAlert";
-import LoadingSpinner from "../components/common/LoadingSpinner";
 import {
   APP_NAME,
   BTN_LOGIN,
-  ERROR_INVALID_USER,
-  ERROR_LOAD_USERS,
-  ERROR_SELECT_USER,
-  LABEL_SELECT_USER_PLACEHOLDER,
-  LOADING_USERS,
   LOGIN_PAGE_TITLE,
 } from "../config/constants";
 import { useAuth } from "../hooks/useAuth";
-import { userService } from "../services/userService";
-import type { User } from "../types";
 
 const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,56 +26,25 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Fetch users on mount
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const fetchedUsers = await userService.getUsers();
-        setUsers(fetchedUsers);
-        setError("");
-      } catch {
-        setError(ERROR_LOAD_USERS);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!selectedUserId) {
-      setError(ERROR_SELECT_USER);
-      return;
-    }
-
-    const selectedUser = users.find((user) => user.id == +selectedUserId);
-
-    if (!selectedUser) {
-      setError(ERROR_INVALID_USER);
+    if (!email || !password) {
+      setError("Please fill in all fields");
       return;
     }
 
     setSubmitting(true);
+    setError("");
+
     try {
-      login(selectedUser);
+      await login({ email, password });
       navigate("/news", { replace: true });
     } catch {
-      setError("Login failed. Please try again.");
+      setError("Login failed. Invalid email or password.");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message={LOADING_USERS} />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gray-50 relative overflow-hidden">
@@ -105,7 +64,7 @@ const LoginPage = () => {
               {LOGIN_PAGE_TITLE}
             </h1>
             <p className="text-gray-600 leading-relaxed">
-              Select your user account to access the news portal
+              Sign in to your account
             </p>
           </div>
 
@@ -116,29 +75,29 @@ const LoginPage = () => {
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <div className="relative">
-                <select
-                  id="user"
-                  value={selectedUserId}
-                  onChange={(e) => {
-                    setSelectedUserId(e.target.value);
-                    if (error) setError("");
-                  }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none cursor-pointer transition-all duration-200"
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+                  placeholder="Enter your email"
                   required
-                  disabled={submitting}
-                >
-                  <option value="">{LABEL_SELECT_USER_PLACEHOLDER}</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                  <FaChevronDown className="w-4 h-4" />
-                </div>
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+                  placeholder="Enter your password"
+                  required
+                />
               </div>
             </div>
 
@@ -146,10 +105,24 @@ const LoginPage = () => {
               type="submit"
               variant="primary"
               className="w-full py-3 text-base font-semibold rounded-lg transition-all duration-200"
-              disabled={submitting || !selectedUserId}
+              disabled={submitting}
             >
               {submitting ? "Signing in..." : BTN_LOGIN}
             </Button>
+
+            {/* Hardcoded demo credentials hint (optional, can be removed) */}
+            <div className="text-sm text-gray-500 text-center mt-4">
+              <p>Demo Credentials:</p>
+              <p>Email: john@example.com</p>
+              <p>Password: Pass1234</p>
+            </div>
+
+            <div className="text-center mt-4 text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                Register here
+              </Link>
+            </div>
           </form>
         </div>
       </div>

@@ -1,19 +1,9 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { MongooseModule } from "@nestjs/mongoose";
-import { NewsModule } from "./news/news.module";
-import { UsersModule } from "./users/users.module";
+
+import { Module } from '@nestjs/common';
+import { CoreModule } from './core/core.module';
+import { FeaturesModule } from './features/features.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/news-portal"
-    ),
-    UsersModule,
-    NewsModule,
-  ],
+  imports: [CoreModule, FeaturesModule],
 })
-export class AppModule {}
+export class AppModule { }
