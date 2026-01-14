@@ -2,7 +2,7 @@
   "name": "news-portal-backend",
   "version": "1.0.0",
   "description": "NestJS backend for News Portal",
-  "author": "",
+  "author": "Ratul Sikder",
   "private": true,
   "license": "MIT",
   "scripts": {
