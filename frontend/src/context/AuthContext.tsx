@@ -10,8 +10,6 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const STORAGE_KEY = "auth_token";
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -20,31 +18,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem(STORAGE_KEY);
-      if (token) {
-        try {
-          const profile = await userService.getProfile();
-          setUser(profile);
-        } catch {
-          localStorage.removeItem(STORAGE_KEY);
-          setUser(null);
-        }
+      try {
+        // With cookies, we just try to get the profile. 
+        // If cookie exists and is valid, this succeeds.
+        const profile = await userService.getProfile();
+        setUser(profile);
+      } catch {
+        // If fails (401), we are not logged in
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initAuth();
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
-    const response = await userService.login(credentials);
-    localStorage.setItem(STORAGE_KEY, response.access_token);
-    setUser(response.user);
+    const user = await userService.login(credentials);
+    setUser(user);
+
+    // We don't need to manually set token
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await userService.logout();
     setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+    // Cookie is cleared by server response
   };
 
   const isAuthenticated = !!user;

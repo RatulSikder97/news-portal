@@ -48,3 +48,11 @@ export interface PaginatedResponse<T> {
   items: number;
   data: T[];
 }
+
+export interface ApiResponse<T> {
+  status: boolean;
+  statusCode: number;
+  msg: string;
+  data: T;
+  errors: any;
+}

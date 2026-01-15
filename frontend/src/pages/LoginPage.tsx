@@ -39,8 +39,9 @@ const LoginPage = () => {
     try {
       await login({ email, password });
       navigate("/news", { replace: true });
-    } catch {
-      setError("Login failed. Invalid email or password.");
+    } catch (err: any) {
+      const msg = err.response?.data?.msg || "Login failed. Invalid email or password.";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }

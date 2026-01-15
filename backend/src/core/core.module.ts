@@ -5,10 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheModule, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { caching } from 'cache-manager';
-import { TransformInterceptor } from './interceptors/transform.interceptor';
+
 import { AllExceptionsFilter } from './filters/http-exception.filter';
 import { FileStore } from './cache/file.store';
 import { HttpCacheInterceptor } from './interceptors/http-cache.interceptor';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 
 @Global()
 @Module({
@@ -22,13 +23,14 @@ import { HttpCacheInterceptor } from './interceptors/http-cache.interceptor';
         CacheModule.register(),
     ],
     providers: [
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: TransformInterceptor,
-        },
+
         {
             provide: APP_INTERCEPTOR,
             useClass: HttpCacheInterceptor,
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: TransformInterceptor,
         },
         {
             provide: APP_FILTER,

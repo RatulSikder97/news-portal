@@ -1,24 +1,14 @@
-import { API_BASE_URL, API_ENDPOINTS, getAuthHeaders } from "../config/api";
+import { API_ENDPOINTS } from "../config/api";
 import {
   ERROR_CREATE_NEWS,
   ERROR_DELETE_NEWS,
   ERROR_LOAD_NEWS,
   ERROR_LOAD_NEWS_DETAIL,
-
   ERROR_UPDATE_NEWS,
   ERROR_POST_COMMENT,
 } from "../config/constants";
 import type { News, PaginatedResponse } from "../types";
-
-const endpoints = {
-  getAll: `${API_BASE_URL}${API_ENDPOINTS.news}`,
-  getById: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
-  create: `${API_BASE_URL}${API_ENDPOINTS.news}`,
-  update: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
-  delete: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}`,
-  addComment: (id: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}/comments`,
-  removeComment: (id: string, commentId: string) => `${API_BASE_URL}${API_ENDPOINTS.news}/${id}/comments/${commentId}`,
-};
+import apiClient from "../api/client";
 
 export const newsService = {
   async getAllNews(
@@ -27,35 +17,24 @@ export const newsService = {
     query?: string
   ): Promise<PaginatedResponse<News>> {
     try {
-      const url = endpoints.getAll;
-      const params = new URLSearchParams();
-
-      params.append("_page", page.toString());
-      params.append("_limit", limit.toString());
+      const params: Record<string, any> = {
+        _page: page,
+        _limit: limit,
+        _sort: "_id",
+        _order: "desc",
+      };
 
       if (query) {
-        params.append("q", encodeURIComponent(query));
+        params.q = query;
       }
 
-      params.append("_sort", "_id");
-      params.append("_order", "desc");
+      const response = await apiClient.get(API_ENDPOINTS.news, { params });
 
-      const response = await fetch(`${url}?${params.toString()}`, {
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error(ERROR_LOAD_NEWS);
-      }
-
-      const json = await response.json();
-      const data = json.data;
-
-      // Get total count from Link header or X-Total-Count
-      const totalCount = parseInt(response.headers.get("X-Total-Count") || "0");
+      const data = response.data.data;
+      const totalCount = parseInt(response.headers["x-total-count"] || "0");
       const totalPages = Math.ceil(totalCount / limit);
 
-      const paginatedResponse: PaginatedResponse<News> = {
+      return {
         first: 1,
         prev: page > 1 ? page - 1 : null,
         next: page < totalPages ? page + 1 : null,
@@ -64,8 +43,6 @@ export const newsService = {
         items: totalCount,
         data: data,
       };
-
-      return paginatedResponse;
     } catch (error) {
       console.error(ERROR_LOAD_NEWS, error);
       throw error;
@@ -74,34 +51,19 @@ export const newsService = {
 
   async getNewsById(id: string): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.getById(id)}`, {
-        headers: getAuthHeaders(),
-      });
-      if (!response.ok) {
-        throw new Error(ERROR_LOAD_NEWS_DETAIL);
-      }
+      const response = await apiClient.get(`${API_ENDPOINTS.news}/${id}`);
+      const news = response.data.data;
 
-      const json = await response.json();
-      const news = json.data;
-
-      // Author is commonly populated by backend now, but if not we fetch it.
-      // Current backend populates comments but maybe not author in deep way if simple ObjectId?
-      // Actually backend schema says author_id is ObjectId ref 'User'.
-      // NewsService.findOne populates 'comments'. It does NOT populate 'author_id' explicitly in my previous code 
-      // (only 'comments'). So we might still need to fetch author if backend doesn't populate it.
-      // However, frontend types say `author?: User`.
-
-      // Let's keep the author fetch logic for now to be safe, assuming backend returns author_id as string.
+      // Author population logic
       if (news.author_id && typeof news.author_id === 'string') {
-        const authorResponse = await fetch(
-          `${API_BASE_URL}${API_ENDPOINTS.users}/${news.author_id}`,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-        if (authorResponse.ok) {
-          const authorJson = await authorResponse.json();
-          news.author = authorJson.data;
+        try {
+          const authorResponse = await apiClient.get(
+            `${API_ENDPOINTS.users}/${news.author_id}`
+          );
+          news.author = authorResponse.data.data;
+        } catch (e) {
+          // Ignore author fetch error, just return news without populated author
+          console.warn("Failed to fetch author for news detail", e);
         }
       }
 
@@ -114,20 +76,8 @@ export const newsService = {
 
   async createNews(newsData: Omit<News, "_id" | "comments" | "author_id" | "created_at">): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.create}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify(newsData),
-      });
-
-      if (!response.ok) {
-        throw new Error(ERROR_CREATE_NEWS);
-      }
-      const json = await response.json();
-      return json.data;
+      const response = await apiClient.post(API_ENDPOINTS.news, newsData);
+      return response.data.data;
     } catch (error) {
       console.error(ERROR_CREATE_NEWS, error);
       throw error;
@@ -137,21 +87,11 @@ export const newsService = {
   async updateNews(id: string, newsData: Partial<News>): Promise<News> {
     try {
       // Remove restricted fields
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { _id, author_id, created_at, comments, ...updateData } = newsData as any;
 
-      const response = await fetch(`${endpoints.update(id)}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify(updateData),
-      });
-      if (!response.ok) {
-        throw new Error(ERROR_UPDATE_NEWS);
-      }
-      const json = await response.json();
-      return json.data;
+      const response = await apiClient.patch(`${API_ENDPOINTS.news}/${id}`, updateData);
+      return response.data.data;
     } catch (error) {
       console.error(ERROR_UPDATE_NEWS, error);
       throw error;
@@ -160,13 +100,7 @@ export const newsService = {
 
   async deleteNews(id: string): Promise<void> {
     try {
-      const response = await fetch(`${endpoints.delete(id)}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
-      if (!response.ok) {
-        throw new Error(ERROR_DELETE_NEWS);
-      }
+      await apiClient.delete(`${API_ENDPOINTS.news}/${id}`);
     } catch (error) {
       console.error(ERROR_DELETE_NEWS, error);
       throw error;
@@ -175,20 +109,11 @@ export const newsService = {
 
   async addComment(newsId: string, text: string): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.addComment(newsId)}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        throw new Error(ERROR_POST_COMMENT);
-      }
-      const json = await response.json();
-      return json.data; // Backend returns the updated News object
+      const response = await apiClient.post(
+        `${API_ENDPOINTS.news}/${newsId}/comments`,
+        { text }
+      );
+      return response.data.data;
     } catch (error) {
       console.error(ERROR_POST_COMMENT, error);
       throw error;
@@ -197,16 +122,10 @@ export const newsService = {
 
   async removeComment(newsId: string, commentId: string): Promise<News> {
     try {
-      const response = await fetch(`${endpoints.removeComment(newsId, commentId)}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete comment");
-      }
-      const json = await response.json();
-      return json.data;
+      const response = await apiClient.delete(
+        `${API_ENDPOINTS.news}/${newsId}/comments/${commentId}`
+      );
+      return response.data.data;
     } catch (error) {
       console.error("Failed to delete comment", error);
       throw error;

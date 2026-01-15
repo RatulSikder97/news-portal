@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://localhost:3000";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 export const API_ENDPOINTS = {
   users: "/users",
@@ -9,9 +9,4 @@ export const API_ENDPOINTS = {
     register: "/auth/register",
     profile: "/auth/profile",
   },
-};
-
-export const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem("auth_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
 };
