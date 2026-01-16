@@ -40,13 +40,12 @@ export interface News {
 }
 
 export interface PaginatedResponse<T> {
-  first: number;
-  prev: number | null;
-  next: number | null;
-  last: number;
   pages: number;
-  items: number;
-  data: T[];
+  limit: number;
+  current_page: number;
+  last_page: number;
+  total: number;
+  items: T[];
 }
 
 export interface ApiResponse<T> {

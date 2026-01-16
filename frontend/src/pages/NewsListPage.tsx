@@ -96,7 +96,7 @@ const NewsListPage = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const newsList = paginatedNews?.data || [];
+    const newsList = paginatedNews?.items || [];
     const totalPages = paginatedNews?.pages || 0;
 
     console.log(paginatedNews);
@@ -219,8 +219,8 @@ const NewsListPage = () => {
                                             key={page}
                                             onClick={() => handlePageChange(page)}
                                             className={`px-3 py-1 rounded ${currentPage === page
-                                                    ? "bg-blue-600 text-white"
-                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                ? "bg-blue-600 text-white"
+                                                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
                                                 }`}
                                         >
                                             {page}

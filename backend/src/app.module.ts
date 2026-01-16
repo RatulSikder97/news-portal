@@ -9,7 +9,7 @@ import { FeaturesModule } from './features/features.module';
   imports: [
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 10,
+      limit: 10000,
     }]),
     CoreModule,
     FeaturesModule,

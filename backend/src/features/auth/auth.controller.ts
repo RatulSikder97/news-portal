@@ -19,23 +19,13 @@ export class AuthController {
             path: '/',
             maxAge: 3600 * 1000 // 1 hour
         });
-        return { data: result.user };
+        return result.user;
     }
 
     @Post('register')
     async register(@Body() createUserDto: CreateUserDto, @Res({ passthrough: true }) res: Response) {
-        const result = await this.authService.register(createUserDto);
-        // Usually register doesn't auto-login in some flows, but here we can return the user.
-        // If register should auto-login, we need the token. AuthService.register currently returns User, not token.
-        // For consistency with previous flow, let's just return the user. 
-        // If we want auto-login, we'd need to change AuthService to return token on register too.
-        // Assuming user logs in after register for now, or if AuthService changes return type.
-        // Current AuthService.register returns User.
+        return await this.authService.register(createUserDto);
 
-        // Wait, if I want to set cookie on register, I need a token.
-        // Does AuthService.register return a token? 
-        // Let's check AuthService. I'll assume for now it just returns User and user must login.
-        return { data: result };
     }
 
     @Post('logout')
@@ -47,6 +37,6 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     getProfile(@Request() req) {
-        return { data: req.user };
+        return req.user;
     }
 }

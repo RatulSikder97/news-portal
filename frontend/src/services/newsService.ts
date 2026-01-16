@@ -18,10 +18,10 @@ export const newsService = {
   ): Promise<PaginatedResponse<News>> {
     try {
       const params: Record<string, any> = {
-        _page: page,
-        _limit: limit,
-        _sort: "_id",
-        _order: "desc",
+        page: page,
+        limit: limit,
+        sort: "_id",
+        order: "desc",
       };
 
       if (query) {
@@ -29,20 +29,7 @@ export const newsService = {
       }
 
       const response = await apiClient.get(API_ENDPOINTS.news, { params });
-
-      const data = response.data.data;
-      const totalCount = parseInt(response.headers["x-total-count"] || "0");
-      const totalPages = Math.ceil(totalCount / limit);
-
-      return {
-        first: 1,
-        prev: page > 1 ? page - 1 : null,
-        next: page < totalPages ? page + 1 : null,
-        last: totalPages,
-        pages: totalPages,
-        items: totalCount,
-        data: data,
-      };
+      return response.data.data;
     } catch (error) {
       console.error(ERROR_LOAD_NEWS, error);
       throw error;

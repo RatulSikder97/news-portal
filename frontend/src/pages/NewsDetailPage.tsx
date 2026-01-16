@@ -300,7 +300,7 @@ const NewsDetailPage = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-700 font-semibold text-lg">
-                      {author.name.charAt(0).toUpperCase()}
+                      {author.name?.charAt(0).toUpperCase() || "A"}
                     </span>
                   </div>
                   <div>
@@ -384,7 +384,7 @@ const NewsDetailPage = () => {
               {comments.map((comment) => {
                 const commenter = comment.user;
                 const commenterInitial = commenter
-                  ? commenter.name.charAt(0).toUpperCase()
+                  ? commenter.name?.charAt(0).toUpperCase()
                   : "U";
                 const commenterName = commenter?.name || "Unknown User";
                 return (

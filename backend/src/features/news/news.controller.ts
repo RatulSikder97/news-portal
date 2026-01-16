@@ -22,12 +22,11 @@ export class NewsController {
 
   @Get()
   async findAll(
-    @Query("_page") page: string = "1",
-    @Query("_limit") limit: string = "10",
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "10",
     @Query("q") query?: string,
-    @Query("_sort") sort: string = "_id",
-    @Query("_order") order: "asc" | "desc" = "desc",
-    @Res({ passthrough: true }) res?: Response
+    @Query("sort") sort: string = "_id",
+    @Query("order") order: "asc" | "desc" = "desc",
   ) {
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
@@ -40,12 +39,16 @@ export class NewsController {
       order
     );
 
-    // Set X-Total-Count header for pagination
-    if (res) {
-      res.setHeader("X-Total-Count", total.toString());
-    }
+    const pages = Math.ceil(total / limitNum);
 
-    return data;
+    return {
+      items: data,
+      total,
+      current_page: pageNum,
+      limit: limitNum,
+      pages,
+      last_page: pages,
+    };
   }
 
   @Get(":id")
