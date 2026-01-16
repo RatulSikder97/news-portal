@@ -55,12 +55,9 @@ const NewsDetailPage = () => {
         setLoading(true);
         const newsData = await newsService.getNewsById(id);
 
-        // Enrich comments with user data
-        // Note: Check if comments are populated properly by backend. If they are just object refs with user_id, we fetch users.
         const enrichedComments = await Promise.all(
           (newsData.comments || []).map(async (comment) => {
             try {
-              // Ensure user_id is treated as string
               const userData = await userService.getUserById(comment.user_id);
               return { ...comment, user: userData };
             } catch {
@@ -116,17 +113,7 @@ const NewsDetailPage = () => {
       setSubmittingComment(true);
       setCommentError("");
 
-      // Use the new addComment endpoint
       const updatedNews = await newsService.addComment(news._id, commentText.trim());
-
-      // The backend returns the updated news with comments populated (but maybe not users deep populated)
-      // We need to re-enrich the comments or just append the new one locally if we know the user
-
-      // Find the new comment in updatedNews.comments
-      // Logic: it's likely the last one, or we filter by verifying what is not in current state.
-      // But simplified approach: just take the comments from updatedNews and enrich them all again or just the last one.
-      // Easiest: append our predicted new comment structure locally for instant feedback, then re-fetch or use backend response.
-      // Better: Use backend response to be sure of ID.
 
       const latestComment = updatedNews.comments[updatedNews.comments.length - 1];
       const enrichedLatestComment = { ...latestComment, user };

@@ -41,7 +41,7 @@ export const newsService = {
       const response = await apiClient.get(`${API_ENDPOINTS.news}/${id}`);
       const news = response.data.data;
 
-      // Author population logic
+
       if (news.author_id && typeof news.author_id === 'string') {
         try {
           const authorResponse = await apiClient.get(
@@ -49,7 +49,7 @@ export const newsService = {
           );
           news.author = authorResponse.data.data;
         } catch (e) {
-          // Ignore author fetch error, just return news without populated author
+
           console.warn("Failed to fetch author for news detail", e);
         }
       }
@@ -73,8 +73,7 @@ export const newsService = {
 
   async updateNews(id: string, newsData: Partial<News>): Promise<News> {
     try {
-      // Remove restricted fields
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const { _id, author_id, created_at, comments, ...updateData } = newsData as any;
 
       const response = await apiClient.patch(`${API_ENDPOINTS.news}/${id}`, updateData);

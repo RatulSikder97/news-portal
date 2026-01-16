@@ -19,12 +19,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // With cookies, we just try to get the profile. 
-        // If cookie exists and is valid, this succeeds.
+
         const profile = await userService.getProfile();
         setUser(profile);
       } catch {
-        // If fails (401), we are not logged in
+
         setUser(null);
       } finally {
         setLoading(false);
@@ -38,13 +37,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const user = await userService.login(credentials);
     setUser(user);
 
-    // We don't need to manually set token
+
   };
 
   const logout = async () => {
     await userService.logout();
     setUser(null);
-    // Cookie is cleared by server response
+
   };
 
   const isAuthenticated = !!user;
