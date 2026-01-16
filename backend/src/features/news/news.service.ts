@@ -65,6 +65,19 @@ export class NewsService {
     return news;
   }
 
+  async clearCache() {
+    try {
+      const cacheDir = '.cache';
+      const files = await import('fs/promises').then(fs => fs.readdir(cacheDir));
+      const deletePromises = files
+        .filter(file => file.startsWith('GET__news'))
+        .map(file => import('fs/promises').then(fs => fs.unlink(`${cacheDir}/${file}`)));
+      await Promise.all(deletePromises);
+    } catch (e) {
+      console.warn("Failed to clear cache", e);
+    }
+  }
+
   async create(createNewsDto: CreateNewsDto, userId: string): Promise<News> {
     if (!createNewsDto.created_at) {
       createNewsDto.created_at = new Date().toISOString();
@@ -74,6 +87,7 @@ export class NewsService {
       ...createNewsDto,
       author_id: new Types.ObjectId(userId)
     });
+    await this.clearCache();
     return createdNews.save();
   }
 
@@ -96,6 +110,7 @@ export class NewsService {
       .populate('comments')
       .exec();
 
+    await this.clearCache();
     return updatedNews;
   }
 
@@ -115,6 +130,7 @@ export class NewsService {
 
     await this.newsModel.findByIdAndDelete(id).exec();
     await this.commentModel.deleteMany({ news_id: new Types.ObjectId(id) });
+    await this.clearCache();
   }
 
   async addComment(
@@ -132,6 +148,7 @@ export class NewsService {
     });
 
     await newComment.save();
+    await this.clearCache();
 
     return this.findOne(newsId);
   }
@@ -151,6 +168,7 @@ export class NewsService {
     }
 
     await this.commentModel.findByIdAndDelete(commentId);
+    await this.clearCache();
 
     return this.findOne(newsId);
   }
