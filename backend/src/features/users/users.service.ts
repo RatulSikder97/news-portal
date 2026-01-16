@@ -68,4 +68,22 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
   }
+  async updateRefreshToken(userId: string, refreshToken: string | null): Promise<void> {
+    if (refreshToken) {
+      const salt = await bcrypt.genSalt();
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+      await this.userModel.findByIdAndUpdate(userId, { hashedRefreshToken });
+    } else {
+      await this.userModel.findByIdAndUpdate(userId, { hashedRefreshToken: null });
+    }
+  }
+
+  async findByIdAndRefreshToken(userId: string, refreshToken: string): Promise<User | null> {
+    const user = await this.userModel.findById(userId).select('+hashedRefreshToken');
+    if (!user || !user.hashedRefreshToken) return null;
+
+    const isMatch = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    if (isMatch) return user;
+    return null;
+  }
 }

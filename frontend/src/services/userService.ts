@@ -24,28 +24,18 @@ export const userService = {
     }
   },
 
-  async login(credentials: LoginCredentials): Promise<User> {
+  async login(credentials: LoginCredentials): Promise<void> {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.auth.login, credentials);
-      const userData = response.data.data;
-      if (userData.user && userData.user.id && !userData.user._id) {
-        userData.user._id = userData.user.id;
-      }
-      return userData;
+      await apiClient.post(API_ENDPOINTS.auth.login, credentials);
     } catch (error) {
       console.error("Login failed", error);
       throw error;
     }
   },
 
-  async register(data: RegisterData): Promise<User> {
+  async register(data: RegisterData): Promise<void> {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.auth.register, data);
-      const user = response.data.data;
-      if (user && user.id && !user._id) {
-        user._id = user.id;
-      }
-      return user;
+      await apiClient.post(API_ENDPOINTS.auth.register, data);
     } catch (error) {
       console.error("Registration failed", error);
       throw error;

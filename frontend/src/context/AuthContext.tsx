@@ -34,10 +34,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
-    const user = await userService.login(credentials);
+    await userService.login(credentials);
+    const user = await userService.getProfile();
     setUser(user);
-
-
   };
 
   const logout = async () => {

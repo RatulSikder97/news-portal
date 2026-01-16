@@ -14,8 +14,23 @@ apiClient.interceptors.response.use(
     (response) => {
         return response;
     },
-    (error) => {
-        // You could handle global errors here, like 401 redirects
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (originalRequest.url?.includes('/auth/refresh')) {
+                return Promise.reject(error);
+            }
+
+            originalRequest._retry = true;
+
+            try {
+                await apiClient.post('/auth/refresh');
+                return apiClient(originalRequest);
+            } catch (refreshError) {
+                return Promise.reject(refreshError);
+            }
+        }
         return Promise.reject(error);
     }
 );

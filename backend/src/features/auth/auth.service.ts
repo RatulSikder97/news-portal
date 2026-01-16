@@ -28,18 +28,51 @@ export class AuthService {
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        const payload = { email: user.email, sub: user._id };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.name,
-            }
-        };
+        return this.getTokens(user._id, user.email);
     }
 
     async register(userDto: CreateUserDto) {
-        return this.usersService.create(userDto);
+        const newUser = await this.usersService.create(userDto);
+        return this.getTokens(newUser._id, newUser.email);
+    }
+
+    async logout(userId: string) {
+        await this.usersService.updateRefreshToken(userId, null);
+    }
+
+    async refreshTokens(refreshToken: string) {
+        try {
+            const payload = await this.jwtService.verifyAsync(
+                refreshToken,
+                { secret: process.env.JWT_REFRESH_SECRET || 'your_refresh_secret_key' }
+            );
+            const user = await this.usersService.findByIdAndRefreshToken(payload.sub, refreshToken);
+            if (!user) throw new UnauthorizedException('Access Denied');
+
+            return this.getTokens(user._id, user.email);
+        } catch (e) {
+            throw new UnauthorizedException('Invalid or Expired Refresh Token');
+        }
+    }
+
+    async getTokens(userId: string, email: string) {
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(
+                { sub: userId, email },
+                { secret: process.env.JWT_SECRET || 'your_secret_key', expiresIn: '15m' },
+            ),
+            this.jwtService.signAsync(
+                { sub: userId, email },
+                { secret: process.env.JWT_REFRESH_SECRET || 'your_refresh_secret_key', expiresIn: '7d' },
+            ),
+        ]);
+
+        await this.usersService.updateRefreshToken(userId, refreshToken);
+
+        return {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            user: { _id: userId, email } // Minimal info, mostly for ID if needed immediately
+        };
     }
 }
